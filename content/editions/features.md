@@ -157,7 +157,7 @@ message ImportedMessage {
 }
 ```
 
-### `features.enforce_naming_style` {#enforce-naming}
+### `features.enforce_naming_style` {#enforce_naming}
 
 Introduced in Edition 2024, this feature enables strict naming style enforcement
 as defined in
@@ -199,7 +199,7 @@ message Foo {
 }
 ```
 
-Edition 2025 defaults to `STYLE2024`, so an override is needed to keep the
+Edition 2024 defaults to `STYLE2024`, so an override is needed to keep the
 non-conformant field name:
 
 ```proto
@@ -935,12 +935,89 @@ message MyMessage {
 }
 ```
 
-## Preserving proto2 or proto3 Behavior {#preserving}
+### `features.(pb.go).strip_enum_prefix` {#go-strip_enum_prefix}
+
+**Languages:** Go
+
+Enum values are not scoped by their containing enum name, so
+[prefixing every value with the enum name is recommended](/programming-guides/style#enums):
+
+```proto
+edition = "2024";
+
+enum Strip {
+  STRIP_ZERO = 0;
+  STRIP_ONE = 1;
+}
+```
+
+However, the generated Go code will now contain two prefixes!
+
+```go
+type Strip int32
+
+const (
+    Strip_STRIP_ZERO Strip = 0
+    Strip_STRIP_ONE  Strip = 1
+)
+```
+
+The language-specific `strip_enum_prefix` feature determines whether the Go code
+generator strips the repetitive prefix or not.
+
+**Values available:**
+
+*   `STRIP_ENUM_PREFIX_KEEP`: Keep the name as-is, even if repetitive.
+*   `STRIP_ENUM_PREFIX_GENERATE_BOTH`: Generate both, a full name and a stripped
+    name (to help with migrating your Go code).
+*   `STRIP_ENUM_PREFIX_STRIP`: Strip the enum name prefix from enum value names.
+
+**Applicable to the following scopes:** Enum, File
+
+**Added in:** 2024
+
+**Default behavior per syntax/edition:**
+
+Syntax/edition | Default
+-------------- | ------------------------
+2024           | `STRIP_ENUM_PREFIX_KEEP`
+
+**Note:** Feature settings on different schema elements
+[have different scopes](#cascading).
+
+You can set the `strip_enum_prefix` feature in edition 2024 (or newer) .proto
+files:
+
+```proto
+edition = "2024";
+
+import "third_party/golang/protobuf/v2/src/google/protobuf/go_features.proto";
+
+option features.(pb.go).strip_enum_prefix = STRIP_ENUM_PREFIX_STRIP;
+
+enum Strip {
+  STRIP_ZERO = 0;
+  STRIP_ONE = 1;
+}
+```
+
+The generated Go code will now strip the `STRIP` prefix:
+
+```go
+type Strip int32
+
+const (
+    Strip_ZERO Strip = 0
+    Strip_ONE  Strip = 1
+)
+```
+
+## Preserving proto2 or proto3 Behavior in Edition 2023 {#preserving}
 
 You may want to move to the editions format but not deal with updates to the way
 that generated code behaves yet. This section shows the changes that the
-Prototiller tool makes to your .proto files to make editions-based protos behave
-like a proto2 or proto3 file.
+Prototiller tool makes to your .proto files to make edition-2023-based protos
+behave like a proto2 or proto3 file.
 
 After these changes are made at the file level, you get the proto2 or proto3
 defaults. You can override at lower levels (message level, field level) to
