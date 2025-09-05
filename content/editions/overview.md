@@ -365,7 +365,7 @@ Edition 2024 added support for option imports using the syntax `import option`.
 
 Option imports must come after any other `import` statements.
 
-Unlike normal `import` statements, option imports import only custom options
+Unlike normal `import` statements, `import option` only imports custom options
 defined in a `.proto` file, without importing other symbols.
 
 This means that messages and enums are excluded from the option import. In the
